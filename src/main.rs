@@ -4,10 +4,15 @@ use std::{collections::HashMap, process::exit};
 
 enum CmdHandler {
     Exit(fn(i32)),
+    Echo(fn(&[&str])),
 }
 
 fn handle_exit(exit_code: i32) {
     exit(exit_code);
+}
+
+fn handle_echo(tokens: &[&str]) {
+    println!("{}", tokens.join(" "));
 }
 
 fn is_valid(builtins: &HashMap<String, CmdHandler>, input: &str) -> bool {
@@ -34,12 +39,14 @@ fn process_input(builtins: &HashMap<String, CmdHandler>, input: &String) {
                     f(code);
                 }
             }
+            CmdHandler::Echo(f) => f(&tokens[1..]),
         }
     }
 }
 
 fn initialize_shell_builtins(builtins: &mut HashMap<String, CmdHandler>) {
     builtins.insert("exit".to_string(), CmdHandler::Exit(handle_exit));
+    builtins.insert("echo".to_string(), CmdHandler::Echo(handle_echo));
 }
 
 fn main() {
