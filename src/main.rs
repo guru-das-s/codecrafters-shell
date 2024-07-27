@@ -51,7 +51,14 @@ fn handle_pwd() {
     println!("{}", env::current_dir().unwrap().display());
 }
 
-fn handle_cd(dir: &str) {
+fn handle_cd(dirpath: &str) {
+    let mut dir: &str = dirpath;
+    let homedir: String;
+
+    if dirpath == "~" {
+        homedir = env::var("HOME").unwrap();
+        dir = &homedir;
+    }
     if fs::metadata(dir).is_err() {
         println!("cd: {}: No such file or directory", dir);
         return;
