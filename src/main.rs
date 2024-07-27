@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use std::io::{self, Write};
-use std::{collections::HashMap, env, fs, process::exit};
+use std::{collections::HashMap, env, fs, process::exit, process::Command};
 
 enum CmdHandler {
     Exit(fn(i32)),
@@ -53,6 +53,7 @@ fn process_input(builtins: &HashMap<String, CmdHandler>, input: &String) {
 
     let cmd = builtins.get(&tokens[0] as &str);
     if let Some(cmd) = cmd {
+        /* Handle builtins */
         match cmd {
             CmdHandler::Exit(f) => {
                 if let Ok(code) = tokens[1].parse::<i32>() {
@@ -62,6 +63,17 @@ fn process_input(builtins: &HashMap<String, CmdHandler>, input: &String) {
             CmdHandler::Echo(f) => f(&tokens[1..]),
             CmdHandler::Type(f) => f(builtins, &tokens[1]),
         }
+    } else if let Some(_) = in_path(&tokens[0]) {
+        /* Handle arbitrary external programs in $PATH */
+        let args = &tokens[1..];
+        let cmd_output = Command::new(tokens[0])
+            .args(args)
+            .output()
+            .expect("Failed to execute program");
+        print!(
+            "{}",
+            String::from_utf8_lossy(&cmd_output.stdout).into_owned()
+        );
     } else {
         println!("{}: command not found", input.trim());
     }
