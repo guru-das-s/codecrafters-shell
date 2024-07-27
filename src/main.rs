@@ -44,16 +44,10 @@ fn handle_type(builtins: &HashMap<String, CmdHandler>, input: &str) {
         print!(": not found\n");
     }
 }
-
 fn process_input(builtins: &HashMap<String, CmdHandler>, input: &String) {
     let tokens: Vec<&str> = input.split_whitespace().collect();
 
     if tokens.len() == 0 {
-        return;
-    }
-
-    if !is_valid(&builtins, &tokens[0]) {
-        println!("{}: command not found", input.trim());
         return;
     }
 
@@ -68,6 +62,8 @@ fn process_input(builtins: &HashMap<String, CmdHandler>, input: &String) {
             CmdHandler::Echo(f) => f(&tokens[1..]),
             CmdHandler::Type(f) => f(builtins, &tokens[1]),
         }
+    } else {
+        println!("{}: command not found", input.trim());
     }
 }
 
