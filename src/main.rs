@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use std::io::{self, Write};
-use std::{collections::HashMap, process::exit};
+use std::{collections::HashMap, env, fs, process::exit};
 
 enum CmdHandler {
     Exit(fn(i32)),
@@ -10,6 +10,20 @@ enum CmdHandler {
 
 fn is_valid(builtins: &HashMap<String, CmdHandler>, input: &str) -> bool {
     return builtins.contains_key(input);
+}
+
+fn in_path(input: &str) -> Option<String> {
+    let path = env::var("PATH").unwrap();
+    let path_dirs: Vec<&str> = path.split(":").collect();
+
+    for dir in path_dirs {
+        let full_path = format!("{}/{}", dir, input);
+        if fs::metadata(&full_path).is_ok() {
+            return Some(full_path);
+        }
+    }
+
+    None
 }
 
 fn handle_exit(exit_code: i32) {
@@ -24,6 +38,8 @@ fn handle_type(builtins: &HashMap<String, CmdHandler>, input: &str) {
     print!("{}", input);
     if is_valid(&builtins, input) {
         print!(" is a shell builtin\n");
+    } else if let Some(fq_path) = in_path(input) {
+        print!(" is {}\n", fq_path);
     } else {
         print!(": not found\n");
     }
