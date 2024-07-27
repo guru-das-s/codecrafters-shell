@@ -7,6 +7,7 @@ enum CmdHandler {
     Echo(fn(&[&str])),
     Type(fn(&HashMap<String, CmdHandler>, &str)),
     Pwd(fn()),
+    Cd(fn(&str)),
 }
 
 fn is_valid(builtins: &HashMap<String, CmdHandler>, input: &str) -> bool {
@@ -50,6 +51,15 @@ fn handle_pwd() {
     println!("{}", env::current_dir().unwrap().display());
 }
 
+fn handle_cd(dir: &str) {
+    if fs::metadata(dir).is_err() {
+        println!("cd: {}: No such file or directory", dir);
+        return;
+    } else {
+        let _ = env::set_current_dir(dir);
+    }
+}
+
 fn process_input(builtins: &HashMap<String, CmdHandler>, input: &String) {
     let tokens: Vec<&str> = input.split_whitespace().collect();
 
@@ -69,6 +79,7 @@ fn process_input(builtins: &HashMap<String, CmdHandler>, input: &String) {
             CmdHandler::Echo(f) => f(&tokens[1..]),
             CmdHandler::Type(f) => f(builtins, &tokens[1]),
             CmdHandler::Pwd(f) => f(),
+            CmdHandler::Cd(f) => f(&tokens[1]),
         }
     } else if let Some(_) = in_path(&tokens[0]) {
         /* Handle arbitrary external programs in $PATH */
@@ -91,6 +102,7 @@ fn initialize_shell_builtins(builtins: &mut HashMap<String, CmdHandler>) {
     builtins.insert("echo".to_string(), CmdHandler::Echo(handle_echo));
     builtins.insert("type".to_string(), CmdHandler::Type(handle_type));
     builtins.insert("pwd".to_string(), CmdHandler::Pwd(handle_pwd));
+    builtins.insert("cd".to_string(), CmdHandler::Cd(handle_cd));
 }
 
 fn main() {
